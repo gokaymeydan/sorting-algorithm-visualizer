@@ -3,17 +3,20 @@
 
 def insertion_sort(arr):
     steps = []  # keep all steps here
+    a = arr.copy()
 
-    for j in range(1, len(arr)):
-        key = arr[j]
-        i = j - 1
+    for i in range(1, len(a)):
+        key = a[i]
+        j = i - 1
 
-        while i >= 0 and arr[i] > key:
-            arr[i + 1] = arr[i]
-            i -= 1
-            steps.append(arr.copy())
-
-        arr[i + 1] = key
-        steps.append(arr.copy())  # save every moment
-
+        while j >= 0 and a[j] > key:
+            a[j + 1] = a[j]
+            steps.append(
+                {"array": a.copy(), "active_index": j + 1, "sorted_boundary": i}
+            )
+            j -= 1
+        a[j + 1] = key
+        steps.append(
+            {"array": a.copy(), "active_index": j + 1, "sorted_boundary": i}
+        )  # save every moment
     return steps
