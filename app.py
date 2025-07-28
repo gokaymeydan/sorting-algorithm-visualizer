@@ -2,89 +2,123 @@ import random
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import streamlit as st
+import time
 
-from algorithms import insertion_sort
+from algorithms import insertion_sort, merge_sort
 
-st.title("Insertion Sort Visualizer")
+st.title("Insertion Sort vs Merge Sort Visualizer")
 
-option = st.radio("Choose input method:", ["Manual Input", "Random List"])
+# --- Veri Girişi ---
+st.subheader("Input Configuration")
+length = st.slider("List length", 5, 20, 8)
+data = random.sample(range(1, 30), length)
+st.write(f"Input array: {data}")
 
-if option == "Manual Input":
-    user_input = st.text_input("Enter numbers seperated by commas (like 5,3,1,4)")
-    if user_input:
-        data = list(map(int, user_input.split(",")))
-else:
-    length = st.slider("List length", 5, 20, 8)
-    data = random.sample(range(1, 30), length)
+if st.button("Compare Insertion Sort vs Merge Sort"):
+    data_insertion = data.copy()
+    data_merge = data.copy()
 
-if "data" in locals() and st.button("Visualize Insertion Sort"):
-    steps = insertion_sort(data)
+    # Insertion Sort
+    steps_insertion = insertion_sort(data_insertion)
 
-    st.write(f"Total steps: {len(steps)}")
+    # Merge Sort
+    steps_merge = merge_sort(data_merge)
 
-    frames = []
-    for i, step in enumerate(steps):
-        array = step["array"]
-        active_index = step["active_index"]
-        sorted_boundary = step["sorted_boundary"]
+    st.subheader("Comparison Results")
+    col1, col2 = st.columns(2)
 
-        colors = []
-        for j in range(len(array)):
-            if j == active_index:
-                colors.append("red")
-            elif j <= sorted_boundary:
-                colors.append("green")
-            else:
-                colors.append("gray")
-        
-        frames.append(go.Frame(
+    with col1:
+        st.markdown("### Insertion Sort")
+        st.write(f"Total steps: {len(steps_insertion)}")
+
+    with col2:
+        st.markdown("### Merge Sort")
+        st.write(f"Total steps: {len(steps_merge)}")
+
+    # --- Görsel Karşılaştırma ---
+    st.subheader("Visual Comparison")
+    col1, col2 = st.columns(2)
+
+    def create_animation(steps, title, color_fn):
+        frames = []
+        for i, step in enumerate(steps):
+            array = step["array"]
+            active_index = step.get("active_index", -1)
+            sorted_boundary = step.get("sorted_boundary", -1)
+
+            colors = color_fn(len(array), active_index, sorted_boundary)
+
+            frames.append(go.Frame(
+                data=[go.Scatter(
+                    x=list(range(len(array))),
+                    y=array,
+                    mode="markers+text",
+                    marker=dict(size=40, color=colors),
+                    text=array,
+                    textposition="middle center"
+                )],
+                name=f"Step {i+1}"
+            ))
+
+        initial = steps[0]
+        initial_colors = color_fn(len(initial["array"]),
+                                  initial.get("active_index", -1),
+                                  initial.get("sorted_boundary", -1))
+
+        fig = go.Figure(
             data=[go.Scatter(
-                x=list(range(len(array))),
-                y=array,
+                x=list(range(len(initial["array"]))),
+                y=initial["array"],
                 mode="markers+text",
-                marker=dict(size=40, color=colors),
-                text=array,
+                marker=dict(size=40, color=initial_colors),
+                text=initial["array"],
                 textposition="middle center"
             )],
-            name=f"Step {i+1}"
-        ))
-    initial = steps[0]
-    initial_colors = [
-        "red" if j == initial["active_index"] else
-        "green" if j <= initial["sorted_boundary"] else "gray"
-        for j in range(len(initial["array"]))
-    ]
+            layout=go.Layout(
+                title=title,
+                xaxis=dict(range=[-0.5, len(initial["array"]) - 0.5]),
+                yaxis=dict(range=[0, max(max(s['array']) for s in steps) + 5]),
+                updatemenus=[dict(
+                    type="buttons",
+                    buttons=[dict(label="Play", method="animate", args=[None])],
+                    showactive=False
+                )],
+                sliders=[{
+                    "steps": [{
+                        "args": [[f"Step {i+1}"], {"frame": {"duration": 500, "redraw": True}}],
+                        "label": f"{i+1}",
+                        "method": "animate"
+                    } for i in range(len(frames))],
+                    "transition": {"duration": 0},
+                    "x": 0, "y": -0.1,
+                    "currentvalue": {"prefix": "Step: "}
+                }]
+            ),
+            frames=frames
+        )
+        return fig
 
-    fig = go.Figure(
-        data=[go.Scatter(
-            x=list(range(len(initial["array"]))),
-            y=initial["array"],
-            mode="markers+text",
-            marker=dict(size=40, color=initial_colors),
-            text=initial["array"],
-            textposition="middle center"
-        )],
-        layout=go.Layout(
-            title="Insertion Sort Animation",
-            xaxis=dict(range=[-0.5, len(initial["array"]) - 0.5]),
-            yaxis=dict(range=[0, max(max(s['array']) for s in steps) + 5]),
-            updatemenus=[dict(
-                type="buttons",
-                buttons=[dict(label="Play", method="animate", args=[None])],
-                showactive=False
-            )],
-            sliders=[{
-                "steps": [{
-                    "args": [[f"Step {i+1}"], {"frame": {"duration": 500, "redraw": True}}],
-                    "label": f"{i+1}",
-                    "method": "animate"
-                } for i in range(len(frames))],
-                "transition": {"duration": 0},
-                "x": 0, "y": -0.1,
-                "currentvalue": {"prefix": "Step: "}
-            }]
-        ),
-        frames=frames
-    )
+    def insertion_colors(length, active_index, sorted_boundary):
+        return [
+            "red" if j == active_index else
+            "green" if j <= sorted_boundary else "gray"
+            for j in range(length)
+        ]
 
-    st.plotly_chart(fig)
+    def merge_colors(length, active_index, sorted_boundary):
+        return [
+            "purple" if j == active_index else
+            "blue" if j <= sorted_boundary else "gray"
+            for j in range(length)
+        ]
+
+    with col1:
+        st.plotly_chart(create_animation(steps_insertion, "Insertion Sort", insertion_colors))
+
+    with col2:
+        st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors))
+
+    # --- Açıklamalar ---
+    st.subheader("About the Algorithms")
+    st.markdown("**Insertion Sort:** A simple comparison-based algorithm that builds the sorted list one element at a time. Best for small or nearly sorted datasets. Time complexity: O(n²).")
+    st.markdown("**Merge Sort:** A divide-and-conquer algorithm that recursively splits the list and merges them in sorted order. Efficient for large datasets. Time complexity: O(n log n).")
