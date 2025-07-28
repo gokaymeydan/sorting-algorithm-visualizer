@@ -18,10 +18,8 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
     data_insertion = data.copy()
     data_merge = data.copy()
 
-    # Insertion Sort
     steps_insertion = insertion_sort(data_insertion)
 
-    # Merge Sort
     steps_merge = merge_sort(data_merge)
 
     st.subheader("Comparison Results")
@@ -34,10 +32,6 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
     with col2:
         st.markdown("### Merge Sort")
         st.write(f"Total steps: {len(steps_merge)}")
-
-    # --- Görsel Karşılaştırma ---
-    st.subheader("Visual Comparison")
-    col1, col2 = st.columns(2)
 
     def create_animation(steps, title, color_fn):
         frames = []
@@ -75,6 +69,7 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
                 textposition="middle center"
             )],
             layout=go.Layout(
+                height=400,
                 title=title,
                 xaxis=dict(range=[-0.5, len(initial["array"]) - 0.5]),
                 yaxis=dict(range=[0, max(max(s['array']) for s in steps) + 5]),
@@ -112,13 +107,12 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
             for j in range(length)
         ]
 
-    with col1:
-        st.plotly_chart(create_animation(steps_insertion, "Insertion Sort", insertion_colors))
+    st.subheader("Insertion Sort Visualization")
+    st.plotly_chart(create_animation(steps_insertion, "Insertion Sort", insertion_colors))
 
-    with col2:
-        st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors))
+    st.subheader("Merge Sort Visualization")
+    st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors))
 
-    # --- Açıklamalar ---
     st.subheader("About the Algorithms")
     st.markdown("**Insertion Sort:** A simple comparison-based algorithm that builds the sorted list one element at a time. Best for small or nearly sorted datasets. Time complexity: O(n²).")
     st.markdown("**Merge Sort:** A divide-and-conquer algorithm that recursively splits the list and merges them in sorted order. Efficient for large datasets. Time complexity: O(n log n).")

@@ -1,25 +1,27 @@
+---
+title: Sorting Algorithm Visualizer
+emoji: 📊
+colorFrom: blue
+colorTo: purple
+sdk: streamlit
+sdk_version: "1.32.2"
+app_file: app.py
+pinned: false
+---
+
 # Sorting Algorithm Visualizer
 
-A Streamlit-based application that visually compares **Insertion Sort** and **Merge Sort** step by step.
-
-![Demo Animation](demo.gif)
+A Streamlit-based web app that visually compares **Insertion Sort** and **Merge Sort** step-by-step using animated bar charts.
 
 ## Features
 
-- Generates a random list of integers
-- Runs Insertion Sort and Merge Sort side by side
-- Step-by-step animated visualization using Plotly
-- Highlights active comparisons and sorted segments
-- Displays total number of steps for each algorithm
-- Brief description of algorithm logic
+- Generates a random array for sorting
+- Side-by-side animated visualization of Insertion Sort and Merge Sort
+- Highlights active elements and sorted regions
+- Displays total number of sorting steps
+- Brief algorithm summaries
 
-## Technologies Used
-
-- Python 3
-- Streamlit
-- Plotly
-
-## How to Run
+## How to Run Locally
 
 ```bash
 pip install -r requirements.txt
