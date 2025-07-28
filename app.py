@@ -107,12 +107,25 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
             for j in range(length)
         ]
 
-    st.subheader("Insertion Sort Visualization")
     st.plotly_chart(create_animation(steps_insertion, "Insertion Sort", insertion_colors))
 
-    st.subheader("Merge Sort Visualization")
     st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors))
 
     st.subheader("About the Algorithms")
-    st.markdown("**Insertion Sort:** A simple comparison-based algorithm that builds the sorted list one element at a time. Best for small or nearly sorted datasets. Time complexity: O(n²).")
-    st.markdown("**Merge Sort:** A divide-and-conquer algorithm that recursively splits the list and merges them in sorted order. Efficient for large datasets. Time complexity: O(n log n).")
+    st.markdown("**Insertion Sort**")
+    st.markdown("""
+    - Simple comparison-based sorting algorithm  
+    - Builds the sorted array one element at a time  
+    - In-place and stable  
+    - Best case: Θ(n) when the array is already sorted  
+    - Worst case: Θ(n²) when the array is reverse sorted  
+    """)
+
+    st.markdown("**Merge Sort**")
+    st.markdown("""
+    - Divide-and-conquer algorithm  
+    - Recursively splits the array and merges sorted halves  
+    - Stable but not in-place  
+    - Consistently performs in Θ(n log n) time in all cases  
+    - Requires additional memory for merging  
+    """)
