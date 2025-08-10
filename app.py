@@ -2,37 +2,85 @@ import random
 import time
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from algorithms import insertion_sort, merge_sort
+import algorithms as alg
 
-st.title("Insertion Sort vs Merge Sort Visualizer")
+st.title("Sorting Algorithm Visualizer")
 
-# --- Veri Girişi ---
+
+def render_metrics(m):
+    if not m:
+        return
+    ms = m.get("seconds", 0.0) * 1000.0
+    comps = m.get("comparisons", 0)
+    moves = m.get("moves", 0)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric("Time (ms)", f"{ms:.2f}")
+    with c2:
+        st.metric("Comparisons", f"{comps:,}")
+    with c3:
+        st.metric("Moves", f"{moves:,}")
+
+
 st.subheader("Input Configuration")
+show_metrics = st.checkbox("Show metrics (use *_with_metrics)", value=True)
 length = st.slider("List length", 5, 20, 8)
 data = random.sample(range(1, 30), length)
 st.write(f"Input array: {data}")
 
-if st.button("Compare Insertion Sort vs Merge Sort"):
+if st.button("Compare Insertion Sort vs Merge Sort vs Quick Sort"):
     data_insertion = data.copy()
     data_merge = data.copy()
+    data_quick = data.copy()
+    data_counting = data.copy()
 
-    steps_insertion = insertion_sort(data_insertion)
-
-    steps_merge = merge_sort(data_merge)
+    if show_metrics:
+        steps_insertion, metrics_insertion = alg.insertion_sort_with_metrics(data_insertion)
+        steps_merge, metrics_merge = alg.merge_sort_with_metrics(data_merge)
+        steps_quick, metrics_quick = alg.quick_sort_with_metrics(data_quick)
+        steps_counting, metrics_counting = alg.counting_sort_with_metrics(data_counting)
+    else:
+        steps_insertion = getattr(
+            alg, "insertion_sort", alg.insertion_sort_with_metrics
+        )(data_insertion)
+        if isinstance(steps_insertion, tuple):
+            steps_insertion = steps_insertion[0]
+        steps_merge = getattr(alg, "merge_sort", alg.merge_sort_with_metrics)(
+            data_merge
+        )
+        if isinstance(steps_merge, tuple):
+            steps_merge = steps_merge[0]
+            steps_quick = getattr(alg, "quick_sort", alg.quick_sort_with_metrics)(
+                data_quick
+            )
+        if isinstance(steps_quick, tuple):
+            steps_quick = steps_quick[0]
+        metrics_insertion = None
+        metrics_merge = None
+        metrics_quick = None
+        metrics_counting = None
 
     st.subheader("Comparison Results")
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("### Insertion Sort")
-        st.write(f"Total steps: {len(steps_insertion)}")
+        if metrics_insertion is not None:
+            render_metrics(metrics_insertion)
 
     with col2:
         st.markdown("### Merge Sort")
-        st.write(f"Total steps: {len(steps_merge)}")
+        if metrics_merge is not None:
+            render_metrics(metrics_merge)
+
+    with col3:
+        st.markdown("### Quick Sort")
+        if metrics_quick is not None:
+            render_metrics(metrics_quick)
 
     def create_animation(steps, title, color_fn):
         frames = []
@@ -115,7 +163,11 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
 
     def insertion_colors(length, active_index, sorted_boundary):
         return [
-            "red" if j == active_index else "green" if j <= sorted_boundary else "gray"
+            (
+                "red"
+                if j == active_index
+                else "green" if j <= sorted_boundary else "gray"
+            )
             for j in range(length)
         ]
 
@@ -129,31 +181,62 @@ if st.button("Compare Insertion Sort vs Merge Sort"):
             for j in range(length)
         ]
 
+    def quick_colors(length, active_index, sorted_boundary):
+        return [
+            (
+                "orange"
+                if j == active_index
+                else "green" if j == sorted_boundary else "gray"
+            )
+            for j in range(length)
+        ]
+    
+    def counting_colors(length, active_index, sorted_boundary):
+        return [
+            (
+                "purple"
+                if j == active_index
+                else "green" if j == sorted_boundary else "gray"
+            )
+            for j in range(length)
+        ]
+
     st.plotly_chart(
         create_animation(steps_insertion, "Insertion Sort", insertion_colors)
     )
-
     st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors))
+    st.plotly_chart(create_animation(steps_quick, "Quick Sort", quick_colors))
 
-    st.subheader("About the Algorithms")
-    st.markdown("**Insertion Sort**")
-    st.markdown(
-        """
-    - Simple comparison-based sorting algorithm  
-    - Builds the sorted array one element at a time  
-    - In-place and stable  
-    - Best case: Θ(n) when the array is already sorted  
-    - Worst case: Θ(n²) when the array is reverse sorted  
-    """
-    )
+    if show_metrics:
+        df = pd.DataFrame(
+            [
+                {
+                    "Algorithm": "Insertion",
+                    "Time_ms": metrics_insertion["seconds"] * 1000,
+                    "Comparisons": metrics_insertion["comparisons"],
+                    "Moves": metrics_insertion["moves"],
+                    "Frames": len(steps_insertion),
+                },
+                {
+                    "Algorithm": "Merge",
+                    "Time_ms": metrics_merge["seconds"] * 1000,
+                    "Comparisons": metrics_merge["comparisons"],
+                    "Moves": metrics_merge["moves"],
+                    "Frames": len(steps_merge),
+                },
+                {
+                    "Algorithm": "Quick",
+                    "Time_ms": metrics_quick["seconds"] * 1000,
+                    "Comparisons": metrics_quick["comparisons"],
+                    "Moves": metrics_quick["moves"],
+                    "Frames": len(steps_quick),
+                },
+            ]
+        )
+        st.subheader("Summary Table")
+        st.dataframe(df.style.format({"Time_ms": "{:.2f}"}), use_container_width=True)
 
-    st.markdown("**Merge Sort**")
-    st.markdown(
-        """
-    - Divide-and-conquer algorithm  
-    - Recursively splits the array and merges sorted halves  
-    - Stable but not in-place  
-    - Consistently performs in Θ(n log n) time in all cases  
-    - Requires additional memory for merging  
-    """
-    )
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download CSV", data=csv, file_name="sorting_summary.csv", mime="text/csv"
+        )
