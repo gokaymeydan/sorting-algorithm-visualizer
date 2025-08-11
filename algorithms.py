@@ -155,6 +155,7 @@ def quick_sort_with_metrics(arr):
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
     return steps, metrics
 
+
 def counting_sort_with_metrics(arr, k=None):
     a = arr.copy()
     steps = []
@@ -186,6 +187,58 @@ def counting_sort_with_metrics(arr, k=None):
         a[i] = v
         moves += 1
         steps.append({"array": a.copy(), "active_index": i, "sorted_boundary": i})
+
+    seconds = time.perf_counter() - start
+    metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
+    return steps, metrics
+
+
+def radix_sort_lsd_with_metrics(arr, base=10):
+    a = arr.copy()
+    steps = []
+    comparisons = 0
+    moves = 0
+
+    if not a:
+        return steps, {"comparisons": 0, "moves": 0, "seconds": 0.0}
+    if base < 2:
+        raise ValueError("radix base must be >= 2")
+
+    start = time.perf_counter()
+
+    def digit(x, exp):
+        return (x // exp) % base
+
+    exp = 1
+    maxv = max(a)
+
+    # for each digit place
+    while maxv // exp > 0:
+        # stable counting sort by current digit
+        count = [0] * base
+        for v in a:
+            d = digit(v, exp)
+            count[d] += 1
+
+        # prefix sums -> positions
+        for i in range(1, base):
+            count[i] += count[i - 1]
+        # build output stably(scan from right)
+        out = [0] * len(a)
+        
+        for v in reversed(a):
+            d = digit(v, exp)
+            idx = count[d] - 1
+            out[idx] = v
+            count[d] = idx
+
+        for i, v in enumerate(out):
+            a[i] = v
+            moves += 1
+            steps.append(
+                {"array": a.copy(), "active_index": i, "sorted_boundary": i}
+            )
+        exp *= base
 
     seconds = time.perf_counter() - start
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
