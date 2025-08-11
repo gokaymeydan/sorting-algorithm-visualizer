@@ -39,7 +39,9 @@ if st.button("Compare Insertion Sort vs Merge Sort vs Quick Sort"):
     data_counting = data.copy()
 
     if show_metrics:
-        steps_insertion, metrics_insertion = alg.insertion_sort_with_metrics(data_insertion)
+        steps_insertion, metrics_insertion = alg.insertion_sort_with_metrics(
+            data_insertion
+        )
         steps_merge, metrics_merge = alg.merge_sort_with_metrics(data_merge)
         steps_quick, metrics_quick = alg.quick_sort_with_metrics(data_quick)
         steps_counting, metrics_counting = alg.counting_sort_with_metrics(data_counting)
@@ -190,7 +192,7 @@ if st.button("Compare Insertion Sort vs Merge Sort vs Quick Sort"):
             )
             for j in range(length)
         ]
-    
+
     def counting_colors(length, active_index, sorted_boundary):
         return [
             (
