@@ -216,28 +216,28 @@ def radix_sort_lsd_with_metrics(arr, base=10):
     while maxv // exp > 0:
         # stable counting sort by current digit
         count = [0] * base
+
+        # count
         for v in a:
             d = digit(v, exp)
             count[d] += 1
 
-        # prefix sums -> positions
+        # prefix sums
         for i in range(1, base):
             count[i] += count[i - 1]
-        # build output stably(scan from right)
+
+        # build output(scan from right)
         out = [0] * len(a)
-        
-        for v in reversed(a):
+        for i in range(len(a) - 1, -1, -1):
+            v = a[i]
             d = digit(v, exp)
-            idx = count[d] - 1
-            out[idx] = v
-            count[d] = idx
+            count[d] -= 1
+            out[count[d]] = v
 
         for i, v in enumerate(out):
             a[i] = v
             moves += 1
-            steps.append(
-                {"array": a.copy(), "active_index": i, "sorted_boundary": i}
-            )
+            steps.append({"array": a.copy(), "active_index": i, "sorted_boundary": i})
         exp *= base
 
     seconds = time.perf_counter() - start
