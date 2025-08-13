@@ -29,6 +29,7 @@ def render_metrics(m):
 st.subheader("Input Configuration")
 length = st.slider("List length", 5, 20, 8)
 data = random.sample(range(1, 30), length)
+base = st.selectbox("Radix base", [2, 4, 8, 10, 16], index=3)
 st.write(f"Input array: {data}")
 
 if st.button("Run Comparison"):
@@ -36,11 +37,13 @@ if st.button("Run Comparison"):
     data_merge = data.copy()
     data_quick = data.copy()
     data_counting = data.copy()
+    data_radix = data.copy()
 
     steps_insertion, metrics_insertion = alg.insertion_sort_with_metrics(data_insertion)
     steps_merge, metrics_merge = alg.merge_sort_with_metrics(data_merge)
     steps_quick, metrics_quick = alg.quick_sort_with_metrics(data_quick)
     steps_counting, metrics_counting = alg.counting_sort_with_metrics(data_counting)
+    steps_radix, metrics_radix = alg.radix_sort_lsd_with_metrics(data_radix, base=base)
 
     def create_animation(steps, title, color_fn):
         frames = []
@@ -161,16 +164,46 @@ if st.button("Run Comparison"):
             for j in range(length)
         ]
 
+    def radix_colors(length, active_index, sorted_boundary):
+        return [
+            (
+                "purple"
+                if j == active_index
+                else "green" if j <= sorted_boundary else "gray"
+            )
+            for j in range(length)
+        ]
+
     c1, c2 = st.columns(2)
     with c1:
-        st.plotly_chart(create_animation(steps_insertion, "Insertion Sort", insertion_colors), use_container_width=True)
+        st.plotly_chart(
+            create_animation(steps_insertion, "Insertion Sort", insertion_colors),
+            use_container_width=True,
+        )
     with c2:
-        st.plotly_chart(create_animation(steps_merge, "Merge Sort", merge_colors), use_container_width=True)
+        st.plotly_chart(
+            create_animation(steps_merge, "Merge Sort", merge_colors),
+            use_container_width=True,
+        )
     c3, c4 = st.columns(2)
     with c3:
-        st.plotly_chart(create_animation(steps_quick, "Quick Sort", quick_colors),use_container_width=True)
+        st.plotly_chart(
+            create_animation(steps_quick, "Quick Sort", quick_colors),
+            use_container_width=True,
+        )
     with c4:
-        st.plotly_chart(create_animation(steps_counting, "Counting Sort", counting_colors), use_container_width=True)
+        st.plotly_chart(
+            create_animation(steps_counting, "Counting Sort", counting_colors),
+            use_container_width=True,
+        )
+    c5, c6 = st.columns(2)
+    with c5:
+        st.plotly_chart(
+            create_animation(steps_radix, "Radix Sort (LSD)", radix_colors),
+            use_container_width=True,
+        )
+    with c6:
+        st.empty()
 
     df = pd.DataFrame(
         [
@@ -201,7 +234,14 @@ if st.button("Run Comparison"):
                 "Comparisons": metrics_counting["comparisons"],
                 "Moves": metrics_counting["moves"],
                 "Frames": len(steps_counting),
-            }
+            },
+            {
+                "Algorithm": "Radix (LSD, base=" + str(base) + ")",
+                "Time_ms": metrics_radix["seconds"] * 1000,
+                "Comparisons": metrics_radix["comparisons"],
+                "Moves": metrics_radix["moves"],
+                "Frames": len(steps_radix),
+            },
         ]
     )
     st.subheader("Summary Table")
