@@ -2,7 +2,7 @@
 import time
 
 
-def insertion_sort_with_metrics(arr):
+def insertion_sort(arr):
     a = arr.copy()
     steps = []
     comparisons = 0
@@ -31,14 +31,14 @@ def insertion_sort_with_metrics(arr):
     return steps, metrics
 
 
-def merge_sort_with_metrics(arr):
+def merge_sort(arr):
     a = arr.copy()
     steps = []
     comparisons = 0
     moves = 0
     start = time.perf_counter()
 
-    def merge_with_metrics(left, mid, right):
+    def merge(left, mid, right):
         nonlocal comparisons, moves
         # Create copies of subarrays
         left_part = a[left : mid + 1]
@@ -85,23 +85,23 @@ def merge_sort_with_metrics(arr):
             j += 1
             k += 1
 
-    def sort_with_metrics(left, right):
+    def sort(left, right):
         if left >= right:
             return
         mid = (left + right) // 2
-        sort_with_metrics(left, mid)
-        sort_with_metrics(mid + 1, right)
-        merge_with_metrics(left, mid, right)
+        sort(left, mid)
+        sort(mid + 1, right)
+        merge(left, mid, right)
 
     if len(a) > 0:
-        sort_with_metrics(0, len(a) - 1)
+        sort(0, len(a) - 1)
 
     end = time.perf_counter()
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": end - start}
     return steps, metrics
 
 
-def quick_sort_with_metrics(arr):
+def quick_sort(arr):
     a = arr.copy()
     steps = []
     comparisons = 0
@@ -156,7 +156,7 @@ def quick_sort_with_metrics(arr):
     return steps, metrics
 
 
-def counting_sort_with_metrics(arr, k=None):
+def counting_sort(arr, k=None):
     a = arr.copy()
     steps = []
     comparisons = 0
@@ -193,7 +193,7 @@ def counting_sort_with_metrics(arr, k=None):
     return steps, metrics
 
 
-def radix_sort_lsd_with_metrics(arr, base=10):
+def radix_sort_lsd(arr, base=10):
     a = arr.copy()
     steps = []
     comparisons = 0
@@ -240,6 +240,73 @@ def radix_sort_lsd_with_metrics(arr, base=10):
             steps.append({"array": a.copy(), "active_index": i, "sorted_boundary": i})
         exp *= base
 
+    seconds = time.perf_counter() - start
+    metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
+    return steps, metrics
+
+# --- Heap Sort (max-heap, in-place) with metrics & step recording ---
+# steps: her adımda {"array": a.copy(), "active_index": i, "sorted_boundary": b}
+# - active_index: o karede yeni yazılan / swap’e giren indeks
+# - sorted_boundary: heapsort’ta sıralı kuyruk (suffix) başlangıcı; j >= boundary -> "sorted"
+# metrics:
+# - comparisons: her a[l] > a[m] veya a[r] > a[m] kontrolü 1 karşılaştırma
+# - moves: diziye her yazma 1; swap 2 move
+def heap_sort(arr):
+    a = arr.copy()
+    steps = []
+    comparisons = 0
+    moves = 0
+
+    heap_sorted = -1
+
+    def snapshot(active_i, boundary):
+        steps.append({"array": a.copy(), "active_index": active_i, "sorted_boundary": boundary})
+
+    def swap(i, j):
+        nonlocal moves
+        if i == j:
+            return
+        a[i], a[j] = a[j], a[i]
+        moves += 2
+        snapshot(i, heap_sorted)
+    
+    def heapify(n, i):
+        nonlocal comparisons
+        while True:
+            largest = i
+            l = 2*i+1
+            r = 2*i+2
+
+            if l < n:
+                comparisons += 1
+                if a[l] > a[largest]:
+                    largest=1
+            if r < n:
+                comparisons += 1
+                if a[r] > a[largest]:
+                    largest = r
+            if largest == i:
+                break
+
+            swap(i, largest)
+            i = largest
+
+    start = time.perf_counter()
+
+    n = len(a)
+    if n <= 1:
+        metrics = {"comparisons": 0, "moves": 0, "seconds": 0.0}
+        return steps, metrics
+    
+    # build max heap
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(n,i)
+    # extract max
+    for end in range(n-1, 0, -1):
+        swap(0, end)
+        heap_sorted = end
+        heapify(end, 0)
+    
     seconds = time.perf_counter() - start
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
     return steps, metrics

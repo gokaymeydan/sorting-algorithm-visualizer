@@ -38,12 +38,14 @@ if st.button("Run Comparison"):
     data_quick = data.copy()
     data_counting = data.copy()
     data_radix = data.copy()
+    data_heap = data.copy()
 
-    steps_insertion, metrics_insertion = alg.insertion_sort_with_metrics(data_insertion)
-    steps_merge, metrics_merge = alg.merge_sort_with_metrics(data_merge)
-    steps_quick, metrics_quick = alg.quick_sort_with_metrics(data_quick)
-    steps_counting, metrics_counting = alg.counting_sort_with_metrics(data_counting)
-    steps_radix, metrics_radix = alg.radix_sort_lsd_with_metrics(data_radix, base=base)
+    steps_insertion, metrics_insertion = alg.insertion_sort(data_insertion)
+    steps_merge, metrics_merge = alg.merge_sort(data_merge)
+    steps_quick, metrics_quick = alg.quick_sort(data_quick)
+    steps_counting, metrics_counting = alg.counting_sort(data_counting)
+    steps_radix, metrics_radix = alg.radix_sort_lsd(data_radix, base=base)
+    steps_heap, metrics_heap = alg.heap_sort(data_heap)
 
     def create_animation(steps, title, color_fn):
         frames = []
@@ -173,6 +175,17 @@ if st.button("Run Comparison"):
             )
             for j in range(length)
         ]
+    
+    def heap_colors(length, active_index, sorted_boundary):
+        return [
+            (
+                "orange"
+                if j == active_index
+                else "green" if (sorted_boundary != -1 and j >= sorted_boundary)
+                else "gray"
+            )
+            for j in range(length)
+        ]
 
     c1, c2 = st.columns(2)
     with c1:
@@ -203,7 +216,10 @@ if st.button("Run Comparison"):
             use_container_width=True,
         )
     with c6:
-        st.empty()
+        st.plotly_chart(
+            create_animation(steps_heap, "Heap Sort", heap_colors),
+            use_container_width=True,
+        )
 
     df = pd.DataFrame(
         [
@@ -242,6 +258,13 @@ if st.button("Run Comparison"):
                 "Moves": metrics_radix["moves"],
                 "Frames": len(steps_radix),
             },
+            {
+                "Algorithm": "Heap Sort",
+                "Time_ms": metrics_heap["seconds"] * 1000,
+                "Comparisons": metrics_heap["comparisons"],
+                "Moves": metrics_heap["moves"],
+                "Frames": len(steps_heap),
+            }
         ]
     )
     st.subheader("Summary Table")
