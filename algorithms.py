@@ -280,7 +280,7 @@ def heap_sort(arr):
             if l < n:
                 comparisons += 1
                 if a[l] > a[largest]:
-                    largest=1
+                    largest = l
             if r < n:
                 comparisons += 1
                 if a[r] > a[largest]:
