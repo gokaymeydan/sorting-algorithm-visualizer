@@ -29,7 +29,6 @@ def render_metrics(m):
 st.subheader("Input Configuration")
 length = st.slider("List length", 5, 20, 8)
 data = random.sample(range(1, 30), length)
-base = st.selectbox("Radix base", [2, 4, 8, 10, 16], index=3)
 st.write(f"Input array: {data}")
 
 if st.button("Run Comparison"):
@@ -44,7 +43,7 @@ if st.button("Run Comparison"):
     steps_merge, metrics_merge = alg.merge_sort(data_merge)
     steps_quick, metrics_quick = alg.quick_sort(data_quick)
     steps_counting, metrics_counting = alg.counting_sort(data_counting)
-    steps_radix, metrics_radix = alg.radix_sort_lsd(data_radix, base=base)
+    steps_radix, metrics_radix = alg.radix_sort_lsd(data_radix, base=10)
     steps_heap, metrics_heap = alg.heap_sort(data_heap)
 
     def create_animation(steps, title, color_fn):
@@ -224,39 +223,44 @@ if st.button("Run Comparison"):
     df = pd.DataFrame(
         [
             {
-                "Algorithm": "Insertion",
+                "Algorithm": "Insertion Sort",
                 "Time_ms": metrics_insertion["seconds"] * 1000,
                 "Comparisons": metrics_insertion["comparisons"],
                 "Moves": metrics_insertion["moves"],
                 "Frames": len(steps_insertion),
+                "Sorted OK": steps_insertion[-1]["array"] == sorted(data)
             },
             {
-                "Algorithm": "Merge",
+                "Algorithm": "Merge Sort",
                 "Time_ms": metrics_merge["seconds"] * 1000,
                 "Comparisons": metrics_merge["comparisons"],
                 "Moves": metrics_merge["moves"],
                 "Frames": len(steps_merge),
+                "Sorted OK": steps_merge[-1]["array"] == sorted(data)
             },
             {
-                "Algorithm": "Quick",
+                "Algorithm": "Quick Sort",
                 "Time_ms": metrics_quick["seconds"] * 1000,
                 "Comparisons": metrics_quick["comparisons"],
                 "Moves": metrics_quick["moves"],
                 "Frames": len(steps_quick),
+                "Sorted OK": steps_quick[-1]["array"] == sorted(data)
             },
             {
-                "Algorithm": "Counting",
+                "Algorithm": "Counting Sort",
                 "Time_ms": metrics_counting["seconds"] * 1000,
                 "Comparisons": metrics_counting["comparisons"],
                 "Moves": metrics_counting["moves"],
                 "Frames": len(steps_counting),
+                "Sorted OK": steps_counting[-1]["array"] == sorted(data)
             },
             {
-                "Algorithm": "Radix (LSD, base=" + str(base) + ")",
+                "Algorithm": "Radix Sort(LSD)",
                 "Time_ms": metrics_radix["seconds"] * 1000,
                 "Comparisons": metrics_radix["comparisons"],
                 "Moves": metrics_radix["moves"],
                 "Frames": len(steps_radix),
+                "Sorted OK": steps_radix[-1]["array"] == sorted(data)
             },
             {
                 "Algorithm": "Heap Sort",
@@ -264,6 +268,7 @@ if st.button("Run Comparison"):
                 "Comparisons": metrics_heap["comparisons"],
                 "Moves": metrics_heap["moves"],
                 "Frames": len(steps_heap),
+                "Sorted OK": steps_heap[-1]["array"] == sorted(data)
             }
         ]
     )
