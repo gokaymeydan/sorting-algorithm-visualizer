@@ -90,7 +90,8 @@ if st.button("Run Comparison"):
                 )
             ],
             layout=go.Layout(
-                height=320,
+                width=900,
+                height=420,
                 title=title,
                 xaxis=dict(range=[-0.5, len(initial["array"]) - 0.5]),
                 yaxis=dict(range=[0, max(max(s["array"]) for s in steps) + 5]),
@@ -186,7 +187,7 @@ if st.button("Run Comparison"):
             for j in range(length)
         ]
 
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     with c1:
         st.plotly_chart(
             create_animation(steps_insertion, "Insertion Sort", insertion_colors),
@@ -197,18 +198,17 @@ if st.button("Run Comparison"):
             create_animation(steps_merge, "Merge Sort", merge_colors),
             use_container_width=True,
         )
-    c3, c4 = st.columns(2)
     with c3:
         st.plotly_chart(
             create_animation(steps_quick, "Quick Sort", quick_colors),
             use_container_width=True,
         )
+    c4, c5, c6 = st.columns(3)
     with c4:
         st.plotly_chart(
             create_animation(steps_counting, "Counting Sort", counting_colors),
             use_container_width=True,
         )
-    c5, c6 = st.columns(2)
     with c5:
         st.plotly_chart(
             create_animation(steps_radix, "Radix Sort (LSD)", radix_colors),
