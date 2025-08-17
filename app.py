@@ -10,7 +10,6 @@ import algorithms as alg
 
 st.title("Sorting Algorithm Visualizer")
 
-
 def render_metrics(m):
     if not m:
         return
@@ -187,34 +186,36 @@ if st.button("Run Comparison"):
             for j in range(length)
         ]
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
+    tab_ins, tab_mer, tab_quick, tab_count, tab_radix, tab_heap = st.tabs(
+        ["Insertion","Merge","Quick","Counting","Radix (LSD)","Heap"]
+    )
+
+    with tab_ins:
         st.plotly_chart(
             create_animation(steps_insertion, "Insertion Sort", insertion_colors),
             use_container_width=True,
         )
-    with c2:
+    with tab_mer:
         st.plotly_chart(
             create_animation(steps_merge, "Merge Sort", merge_colors),
             use_container_width=True,
         )
-    with c3:
+    with tab_quick:
         st.plotly_chart(
             create_animation(steps_quick, "Quick Sort", quick_colors),
             use_container_width=True,
         )
-    c4, c5, c6 = st.columns(3)
-    with c4:
+    with tab_count:
         st.plotly_chart(
             create_animation(steps_counting, "Counting Sort", counting_colors),
             use_container_width=True,
         )
-    with c5:
+    with tab_radix:
         st.plotly_chart(
             create_animation(steps_radix, "Radix Sort (LSD)", radix_colors),
             use_container_width=True,
         )
-    with c6:
+    with tab_heap:
         st.plotly_chart(
             create_animation(steps_heap, "Heap Sort", heap_colors),
             use_container_width=True,
