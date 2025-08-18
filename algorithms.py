@@ -310,3 +310,43 @@ def heap_sort(arr):
     seconds = time.perf_counter() - start
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
     return steps, metrics
+
+def shell_sort(arr):
+    a = arr.copy()
+    steps = []
+    comparisons = 0
+    moves = 0
+
+    def snap(active_i, boundary =-1):
+        steps.append({"array": a.copy(), "active_index": active_i, "sorted_boundary":boundary})
+    
+    start = time.perf_counter()
+
+    n = len(a)
+    if n <= 1:
+        return steps, {"comparisons":0, "moves":0, "seconds": 0.0}
+    
+    gap = n // 2
+    while gap > 0:
+        for i in range(gap,n):
+            key = a[i]
+            j = i - gap
+
+            while j >= 0:
+                comparisons += 1
+                if a[j] > key:
+                    a[j + gap] = a[j]
+                    moves += 1
+                    snap(j + gap)
+                    j -= gap
+                else:
+                    break
+            a[j + gap] = key
+            moves += 1
+            snap(j + gap)
+        
+        gap //= 2
+    
+    seconds = time.perf_counter() - start
+    metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
+    return steps, metrics
