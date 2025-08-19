@@ -1,5 +1,6 @@
 # algorithms.py with metrics
 import time
+import math
 
 
 def insertion_sort(arr):
@@ -349,4 +350,70 @@ def shell_sort(arr):
     
     seconds = time.perf_counter() - start
     metrics = {"comparisons": comparisons, "moves": moves, "seconds": seconds}
+    return steps, metrics
+
+def bucket_sort(arr, num_buckets = None):
+    a = arr.copy()
+    steps = []
+    comparisons = 0
+    moves = 0
+
+    if not a:
+        return steps, {"comparisons": 0, "moves": 0, "seconds": 0.0}
+
+    n = len(a)
+
+    if num_buckets is None:
+        num_buckets = max(1, int(math.sqrt(n)))
+
+    start = time.perf_counter()
+
+    maxv = max(a)
+
+    # normlize values range between 0 and 1
+    if maxv == 0:
+        seconds = time.perf_counter() - start
+
+        for i, v in enumerate(a):
+            steps.append({"array": a.copy(), "active_index": i, "sorted_boundary":i})
+        return steps, {"comparisons":0, "moves":0, "seconds": seconds}
+    
+    normalized = [x / (maxv + 1.0) for x in a]
+    
+    #create buckets
+    buckets = [[] for _ in range(num_buckets)]
+
+    #split values to buckets
+    for v_norm, v_orig in zip(normalized, a):
+        idx = int(v_norm * num_buckets)
+        if idx >= num_buckets:
+            idx = num_buckets - 1
+        buckets[idx].append(v_orig)
+
+    # sort buckets
+
+    for b in buckets:
+        for i in range(1,len(b)):
+            key = b[i]
+            j = i - 1
+            while j >=0:
+                comparisons +=1
+                if b[j] > key:
+                    b[j + 1] = b[j]
+                    j -= 1
+                else:
+                    break
+            b[j + 1] = key
+    
+    # save at main
+    write_i = 0
+    for b in buckets:
+        for v in b:
+            a[write_i] = v
+            moves += 1
+            steps.append({"array":a.copy(),"active_index":write_i,"sorted_boundary":write_i})
+            write_i += 1
+    
+    seconds = time.perf_counter() - start
+    metrics = {"comparisons": comparisons,"moves":moves,"seconds":seconds}
     return steps, metrics
