@@ -38,6 +38,7 @@ if st.button("Run Comparison"):
     data_radix = data.copy()
     data_heap = data.copy()
     data_shell = data.copy()
+    data_bucket = data.copy()
 
     steps_insertion, metrics_insertion = alg.insertion_sort(data_insertion)
     steps_merge, metrics_merge = alg.merge_sort(data_merge)
@@ -46,6 +47,8 @@ if st.button("Run Comparison"):
     steps_radix, metrics_radix = alg.radix_sort_lsd(data_radix, base=10)
     steps_heap, metrics_heap = alg.heap_sort(data_heap)
     steps_shell, metrics_shell = alg.shell_sort(data_shell)
+    steps_bucket, metrics_bucket = alg.bucket_sort(data_bucket)
+
 
     def create_animation(steps, title, color_fn):
         frames = []
@@ -196,10 +199,20 @@ if st.button("Run Comparison"):
             )
             for j in range(length)
         ]
+    def bucket_colors(length, active_index, sorted_boundary):
+        return [
+            (
+                "purple"
+                if j == active_index
+                else "green" if j <= sorted_boundary
+                else "gray"
+            )
+            for j in range(length)
+        ]
 
 
-    tab_ins, tab_mer, tab_quick, tab_count, tab_radix, tab_heap, tab_shell = st.tabs(
-        ["Insertion","Merge","Quick","Counting","Radix (LSD)","Heap", "Shell"]
+    tab_ins, tab_mer, tab_quick, tab_count, tab_radix, tab_heap, tab_shell, tab_bucket = st.tabs(
+        ["Insertion","Merge","Quick","Counting","Radix (LSD)","Heap", "Shell", "Bucket"]
     )
 
     with tab_ins:
@@ -235,6 +248,11 @@ if st.button("Run Comparison"):
     with tab_shell:
         st.plotly_chart(
             create_animation(steps_shell, "Shell Sort", shell_colors),
+            use_container_width=True,
+        )
+    with tab_bucket:
+        st.plotly_chart(
+            create_animation(steps_bucket, "Bucket Sort", bucket_colors),
             use_container_width=True,
         )
 
@@ -295,6 +313,14 @@ if st.button("Run Comparison"):
                 "Moves": metrics_shell["moves"],
                 "Frames": len(steps_shell),
                 "Sorted OK": steps_shell[-1]["array"] == sorted(data)
+            },
+            {
+                "Algorithm": "Bucket Sort",
+                "Time_ms": metrics_bucket["seconds"] * 1000,
+                "Comparisons": metrics_bucket["comparisons"],
+                "Moves": metrics_bucket["moves"],
+                "Frames": len(steps_bucket),
+                "Sorted OK": steps_bucket[-1]["array"] == sorted(data)
             }
         ]
     )
