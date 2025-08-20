@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import statistics
 
 import algorithms as alg
 
@@ -24,13 +25,79 @@ def render_metrics(m):
     with c3:
         st.metric("Moves", f"{moves:,}")
 
-
 st.subheader("Input Configuration")
 length = st.slider("List length", 5, 20, 8)
 data = random.sample(range(1, 30), length)
 st.write(f"Input array: {data}")
 
+benchmark_mode = st.checkbox("Benchmark mode", value = False)
+runs = st.slider("Benchmark runs", min_value=5,max_value=100,value=30,step=5) if benchmark_mode else None
+
+
 if st.button("Run Comparison"):
+    if benchmark_mode:
+        algo_list = [
+            ("Insertion Sort", lambda arr:alg.insertion_sort(arr)),
+            ("Merge Sort", lambda arr:alg.merge_sort(arr)),
+            ("Quick Sort", lambda arr:alg.quick_sort(arr)),
+            ("Counting Sort", lambda arr:alg.counting_sort(arr)),
+            ("Radix Sort (LSD)", lambda arr: alg.radix_sort_lsd(arr, base=10)),
+            ("Heap Sort", lambda arr:alg.heap_sort(arr)),
+            ("Shell Sort", lambda arr:alg.shell_sort(arr)),
+            ("Bucket Sort", lambda arr:alg.bucket_sort(arr)),
+        ]
+        rows = []
+        for name, fn in algo_list:
+            times_ms = []
+            comps = []
+            moves = []
+
+            for _ in range(runs):
+                arr_copy = data.copy()
+                steps, m = fn(arr_copy)
+                times_ms.append(m["seconds"] * 1000)
+                comps.append(m["comparisons"])
+                moves.append(m["moves"])
+            
+            avg_ms = statistics.mean(times_ms)
+            std_ms = statistics.pstdev(times_ms) if len(times_ms) > 1 else 0.0
+            avg_comps = statistics.mean(comps)
+            avg_moves = statistics.mean(moves)
+
+            sorted_ok = (steps[-1]["array"] == sorted(data)) if steps else False
+
+            rows.append({
+                "Algorithm": name,
+                "Avg_ms": avg_ms,
+                "Std_ms": std_ms,
+                "Avg_Comparisons": avg_comps,
+                "Avg_Moves": avg_moves,
+                "Sorted OK (last run)": sorted_ok,
+                "Runs": runs,
+            })
+
+        df_bench = pd.DataFrame(rows).sort_values("Avg_ms", ascending=True)
+
+        st.subheader(f"Benchmark (runs = {runs})")
+        st.dataframe(
+            df_bench.style.format({
+                "Avg_ms": "{:.3f}",
+                "Std_ms": "{:.3f}",
+                "Avg_Comparisons": "{:.1f}",
+                "Avg_Moves": "{:.1f}",
+            }),
+            use_container_width=True,
+        )
+        csv_bench = df_bench.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download Benchmark CSV",
+            data=csv_bench,
+            file_name=f"benchmark_runs_{runs}.csv",
+            mime="text/csv",
+        )
+
+        st.stop()
+
     data_insertion = data.copy()
     data_merge = data.copy()
     data_quick = data.copy()
@@ -51,6 +118,17 @@ if st.button("Run Comparison"):
 
 
     def create_animation(steps, title, color_fn):
+        if not steps:
+            return go.Figure(
+                layout=go.Layout(
+                    width=900,
+                    height=420,
+                    title=title,
+                    xaxis=dict(visible=False),
+                    yaxis=dict(visible=False),
+                    annotations=[dict(text="No steps to display", showarrow=False)],
+                )
+            )
         frames = []
         for i, step in enumerate(steps):
             array = step["array"]
